@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>City of Pelham, GA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+		<meta name="mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-capable" content="yes">
+		<meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+    <link rel="shortcut icon" href="http://cartodb.com/assets/favicon.ico" />		
+		<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+		
+    <style>
+      html,body {width:100%;height:100%;margin:0;padding:0;}
+			#map {
+					
+					position:absolute;
+					height:auto;
+					bottom:0;
+					top:0;
+					left:0;
+					right:0;
+					margin-top:50px; /* adjust top margin to your header height */
+}
+			
+    </style>
+		
+    <link rel="stylesheet" href="http://libs.cartocdn.com/cartodb.js/v3/3.12/themes/css/cartodb.css" />
+		
+  </head>
+  <body>
+		<nav class="navbar navbar-inverse navbar-fixed-top topnav" role="navigation">
+        <div class="container topnav">
+    <!-- Brand and toggle get grouped for better mobile display -->
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        <span class="sr-only">Toggle navigation</span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="#">Public Viewer</a>
+			
+    </div>
+
+    <!-- Collect the nav links, forms, and other content for toggling -->
+    <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+      <ul class="nav navbar-nav"></ul>
+			<form class="navbar-form navbar-right" role="search">
+        <div class="form-group">
+          <input type="text" class="form-control" id="filename" placeholder="Parcel Search">
+        </div>
+				<button type="button" class="btn btn-default" name="submit" id="theButton" onclick="createresult()">Submit</button>        
+      </form>
+		</div>
+		</nav>
+		
+    <div id="map"></div>
+		
+    
+    <!-- include cartodb.js library -->		
+    <script src="http://libs.cartocdn.com/cartodb.js/v3/3.12/cartodb.js"></script>
+		
+		
+			
+		
+		<script>
+	function createresult() {
+		var input = document.getElementById('filename'),
+			fileName = input.value;
+		if (fileName) {
+        alert("Still Under Construction  "+fileName);
+        // Recorder.record('audio', fileName);
+    } else {
+        alert('Please enter a filename!');
+        input.focus();
+    }
+}	
+</script>
+    <script>
+      function main() {
+				
+        var map = new L.Map('map', {
+          zoomControl: false,
+          center: [31.13, -84.15],
+          zoom: 14			
+						
+        });
+				L.control.zoom({position: 'topleft'}).addTo(map);
+        L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'ESRI'
+        }).addTo(map);
+				
+				//map.fitBounds([
+					//[31.13,-84.15],
+					//[34.13,-88]
+				//]);
+        cartodb.createLayer(map, 'http://blackwatergeo.cartodb.com/api/v2/viz/b5437a74-d255-11e4-99f0-0e4fddd5de28/viz.json')
+            .addTo(map)
+         .on('done', function(layer) {
+
+          layer.setInteraction(true);
+
+          layer.on('featureOver', function(e, latlng, pos, data) {
+            cartodb.log.log(e, latlng, pos, data);
+          });
+
+          layer.on('error', function(err) {
+            cartodb.log.log('error: ' + err);
+          });
+        }).on('error', function() {
+          cartodb.log.log("some error occurred");
+        });
+      }
+
+      // you could use $(window).load(main);
+      window.onload = main;
+		function init(){
+			var sql = new cartodb.SQL({ user: 'blackwatergeo' });
+						sql.execute("SELECT * FROM pelham_parcels LIMIT 1")
+					//sql.execute("SELECT * FROM pelham_roads ORDER BY road_name DESC LIMIT 25")
+						.done(function(data) {
+							for (var i = 0; i < data.total_rows; i++) {
+								$('#content').append("<div>" + data.rows[i].name + "</div>");
+							}
+						})
+						.error(function(errors) {
+							console.log("errors:" + errors);
+				})
+			}
+			
+    </script>
+	<!-- jQuery -->
+    <script src="../js/jquery.js"></script>
+
+    <!-- Bootstrap Core JavaScript -->
+    <script src="../js/bootstrap.min.js"></script>
+		
+  </body>
+</html>
